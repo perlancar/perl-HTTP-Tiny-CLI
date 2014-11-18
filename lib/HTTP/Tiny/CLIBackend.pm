@@ -6,9 +6,11 @@ package HTTP::Tiny::CLIBackend;
 use 5.010001;
 use strict;
 use warnings;
+use Log::Any '$log';
 
 use File::Which;
 use IPC::Run;
+use Proc::ChildError qw(explain_child_error);
 #use String::ShellQuote;
 
 sub new {
@@ -18,7 +20,9 @@ sub new {
         my $v = $attrs0{$k};
         if ($k =~ /\A(agent|default_headers|keep_alive|max_size|
                        http_proxy|https_proxy|proxy|no_proxy|timeout|
-                       verify_SSL)\z/x) {
+                       verify_SSL|
+
+                       cli_search_order|curl_path|wget_path)\z/x) {
             $self->{$k} = $v;
         } else {
             die "Unknown/unsupported attribute '$k'";
@@ -84,7 +88,8 @@ sub _request {
             push @cmd, "-A", $self->{agent};
             push @cmd, "-X", $method;
             push @cmd, "-m", $self->{timeout};
-            #push @cmd, "-D";
+            push @cmd, "-k" unless $self->{verify_SSL};
+            push @cmd, "-D-";
             push @cmd, "--no-keep-alive" unless $self->{keep_alive};
             push @cmd, "--noproxy", $self->{no_proxy} if $self->{no_proxy};
             {
@@ -105,14 +110,39 @@ sub _request {
                 }
             }
             push @cmd, $url;
+            $log->tracef("Running: %s", \@cmd);
             my ($in, $out, $err, $h);
             $h = IPC::Run::start(\@cmd, \$in, \$out, $err);
             $h->finish or do {
                 $res->{status}  = 599;
                 $res->{reason}  = "Internal Exception";
-                $res->{content} = "curl returned error (".($? >> 8).")";
+                $res->{content} = explain_child_error(
+                    {prog=>$self->{curl_path}});
+                goto RETURN_RES;
             };
-            goto REURN_RES;
+            $out =~ m!\AHTTP/\d\.\d (\d+).+\n((?:.|\n)+?)\R\R!m or do {
+                $res->{status}  = 599;
+                $res->{reason}  = "Internal Exception";
+                $res->{content} = "Can't parse HTTP status line and headers ".
+                    "from curl output";
+                goto RETURN_RES;
+            };
+            $res->{status} = $1;
+            my $headers = $2;
+            $res->{headers} = {};
+            while ($headers =~ /^([^:]+?)\s*:\s*(.*?)\R/gm) {
+                if (exists $res->{headers}{$1}) {
+                    unless (ref($res->{headers}{$1}) eq 'ARRAY') {
+                        $res->{headers}{$1} = [$res->{headers}{$1}];
+                    }
+                    push @{ $res->{headers}{$1} }, $2;
+                } else {
+                    $res->{headers}{$1} = $2;
+                }
+            }
+            $out =~ s/.+?\R\R//;
+            $res->{content} = $out;
+            goto RETURN_RES;
         } elsif ($cli eq 'wget') {
             next unless defined($self->{wget_path});
             die "Sorry, using 'wget' backend not implemented yet";
@@ -171,6 +201,9 @@ sub www_form_urlencode {
 
 =head1 DESCRIPTION
 
+B<NOTE: EARLY RELEASE. Many features like wget support, redirects, cookies are
+not yet implemented>.
+
 This class lets you use CLI network clients (currently C<wget> and C<curl> are
 supported) with an L<HTTP::Tiny> interface. It is an alternative you can try
 when you must connect to https but L<IO::Socket::SSL> is not available (and you
@@ -206,6 +239,9 @@ Set path to wget. The default is to search for "wget" in PATH.
 
 
 =head1 CAVEATS
+
+This module is currently not exactly "tiny": it depends on a couple of non-core
+modules.
 
 Some information (like "user:password" stanza in URL) might leak because it is
 specified in command line which might be visible from B<ps> or other
