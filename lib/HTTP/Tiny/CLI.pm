@@ -1,4 +1,4 @@
-package HTTP::Tiny::CLIBackend;
+package HTTP::Tiny::CLI;
 
 # DATE
 # VERSION
@@ -176,15 +176,15 @@ sub www_form_urlencode {
 }
 
 1;
-# ABSTRACT: Use network CLI client (curl/wget) with HTTP::Tiny interface
+# ABSTRACT: Use CLI network client (curl/wget) with HTTP::Tiny interface
 
 =for Pod::Coverage ^(.+)$
 
 =head1 SYNOPSIS
 
- use HTTP::Tiny::CLIBackend;
+ use HTTP::Tiny::CLI;
 
- my $response = HTTP::Tiny::CLIBackend->new->get('http://example.com/');
+ my $response = HTTP::Tiny::CLI->new->get('http://example.com/');
 
  die "Failed!\n" unless $response->{success};
 
@@ -204,7 +204,7 @@ sub www_form_urlencode {
 B<NOTE: EARLY RELEASE. Many features like wget support, redirects, cookies are
 not yet implemented>.
 
-This class lets you use CLI network clients (currently C<wget> and C<curl> are
+This class lets you use CLI network clients (currently C<curl> and C<wget> are
 supported) with an L<HTTP::Tiny> interface. It is an alternative you can try
 when you must connect to https but L<IO::Socket::SSL> is not available (and you
 cannot build it because there is no C compiler on the system).
