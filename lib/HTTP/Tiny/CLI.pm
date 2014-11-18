@@ -145,6 +145,8 @@ sub _request {
             goto RETURN_RES;
         } elsif ($cli eq 'wget') {
             next unless defined($self->{wget_path});
+            # XXX how to disable config in wget? by feeding it empty config?
+            # XXX wget doesn't support custom HTTP request method?
             die "Sorry, using 'wget' backend not implemented yet";
         } else {
             die "Unknown/unsupported CLI program '$cli'";
@@ -201,8 +203,8 @@ sub www_form_urlencode {
 
 =head1 DESCRIPTION
 
-B<NOTE: EARLY RELEASE. Many features like wget support, redirects, cookies are
-not yet implemented>.
+B<NOTE: EARLY RELEASE. Many features like wget support, redirects, post data,
+cookies are not yet implemented>.
 
 This class lets you use CLI network clients (currently C<curl> and C<wget> are
 supported) with an L<HTTP::Tiny> interface. It is an alternative you can try
