@@ -250,17 +250,6 @@ specified in command line which might be visible from B<ps> or other
 process-table tools.
 
 
-=head1 TODO
-
-Support various C<SSL_options> in the attributes.
-
-Support request options: trailer_callback, data_callback?
-
-Win32 support.
-
-Implement max_size.
-
-
 =head1 SEE ALSO
 
 L<HTTP::Tiny>
