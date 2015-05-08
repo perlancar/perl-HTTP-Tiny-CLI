@@ -1,5 +1,10 @@
 Revision history for HTTP-Tiny-CLI
 
+0.04    2015-05-08 (PERLANCAR)
+
+	- Mark as deprecated.
+
+
 0.03    2015-01-03 (PERLANCAR)
 
 	- No functional changes.
