@@ -178,7 +178,7 @@ sub www_form_urlencode {
 }
 
 1;
-# ABSTRACT: Use CLI network client (curl/wget) with HTTP::Tiny interface
+# ABSTRACT: (DEPRECATED) Use CLI network client (curl/wget) with HTTP::Tiny interface
 
 =for Pod::Coverage ^(.+)$
 
@@ -202,6 +202,10 @@ sub www_form_urlencode {
 
 
 =head1 DESCRIPTION
+
+B<THIS MODULE IS DEPRECATED.> MIYAGAWA has started its L<HTTP::Tinyish> project
+which also include curl and wget backend. I'm sure he will do a better and more
+thorough job than this experiment.
 
 B<NOTE: EARLY RELEASE. Many features like wget support, redirects, post data,
 cookies are not yet implemented>.
